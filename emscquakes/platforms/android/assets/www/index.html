@@ -1,0 +1,294 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <title>EMSCQuakes</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=3.0">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+		<!-- 
+		<meta name="viewport" content="width=device-width,initial-scale=1"/> 
+		
+		<meta content="True" name="HandheldFriendly" />
+		<meta content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;" name="viewport" />
+		<meta name="viewport" content="width=device-width" /> -->
+		
+		<link rel="icon" type="image/png" href="icons/icon16.png"/>
+        <link rel="stylesheet" href="css/styles.css" media="all" />
+		
+	<script src="js/jquery-1.8.2.min.js"></script> 
+	<script src="js/iscroll-lite.js"></script>	
+   <script>
+		var console={log:function(txt) { $('.visible .wrapper').prepend('<p>'+txt+'</p>'); /* $('#home').prepend('<p>'+txt+'</p>');*/ }};	
+		var isloaded=[]; isloaded['Emap']=isloaded['camera']=isloaded['Esetting']=false;
+		
+		var  isAndroid = (/android/gi).test(navigator.appVersion);			
+		if(!isAndroid) { 
+			var prompt=function() {console.log(arguments); };
+			window.onload=onDeviceReady; 		
+		}
+		
+		var pushNotification, useIscroll=false;
+		document.addEventListener("deviceready", onDeviceReady, true);
+		 function onDeviceReady() { 
+			try {
+				if(device.platform.toLowerCase()=='android' && parseFloat(device.version) < 3) {
+					document.addEventListener('touchmove', function (e) { e.preventDefault(); }, false);
+					loadingJS("js/iscroll-lite.js"); useIscroll=true;
+				}	
+			} catch(e) {}
+			//try { console.log('device: '+JSON.stringify(device)); console.log(parseFloat(device.version)); } catch(e) {}
+			if(checkConnection() || !isAndroid) {
+				pushNotification = window.plugins.pushNotification;
+				app.initapp(); 
+				Push();
+			}
+		 }
+		
+		document.addEventListener("menubutton", function(e) { console.log('menu button push '); },false);
+		document.addEventListener("backbutton", function(e) {
+			console.log('backbutton push');
+			if($('.visible').attr('id')=='home') {	
+				// call this to get a new token each time. don't call it to reuse existing token.
+				//pushNotification.unregister(successPushH, errorPushH);
+				e.preventDefault();
+				navigator.app.exitApp();
+			}	
+			else navigator.app.backHistory();
+		 },false);
+		 
+		 	
+     $(document).ready(function(){
+		//var overflow-scrolling = typeof($("body")[0].style["-webkit-overflow-scrolling"]) !== "undefined";
+		//console.log('overflow: '+typeof($("body")[0].style["-webkit-overflow-scrolling"]));
+		
+		//$("#header").append('<a href="home" id="returnB" class="header-button button slide hidden">Back</a>');
+		//$('.footicon').css('width',$(window).width()/4);
+		$(".slide").click(function(e,a){  
+			
+			var callback=function() { };
+			var url=$(this).attr("href");
+			if( $('.visible').attr('id') == url) return false; /* on est deja dessus */
+			if(url=='Emap') {
+				if(!isloaded['Emap']) { loadCss('css/leaflet.min.css');  loadingJS("js/leaflet_0.5.1.js");  loadingJS("js/map.js?"+(new Date()).getTime()); isloaded['Emap']=true;	}
+				//else resetMap();
+				
+				if(typeof a =='undefined') callback=function() { /*callback.apply(arguments);*/ resetMap(); };
+				else callback=a;
+			}	
+			else if(url=="camera" && !isloaded['camera'] ) { loadingJS("js/capture.js"); isloaded['camera']=true;}
+			else if(url=="Esetting") { 
+				if(isloaded['Esetting']) callback=loadOptions;
+				else { loadingJS("js/settings.js?"+(new Date()).getTime()); isloaded['Esetting']=true; }
+			}
+		
+			slideTo(url, callback);
+			return false;
+		});
+		
+		
+		$(".footicon").click(function(){
+			$('.gray').removeClass('gray');	$('.footiconsel').removeClass('footiconsel');
+			$(this).children().addClass('footiconsel').children().addClass('gray');
+		});
+ 
+	});	
+	
+
+
+	function slideTo(url,callback) {
+		var currentP=$('.visible').attr('id');	 //not('.noslide')
+		//$(".visible > div").animate({"left": "-=1500px"}, 1000,"linear", function(){ $('#'+currentP).removeClass('visible').addClass('hidden');  });
+		$(".visible .header2").animate({"left": "-="+($(window).width())+"px"}, 1000,"linear");
+		$(".visible .wrapper").animate({"left": "-="+($(window).width())+"px"}, 1000,"linear", function(){ $('#'+currentP).removeClass('visible').addClass('hidden').trigger('hideIt');  });
+		$("#"+url).removeClass('hidden').addClass('visible');
+		$("#"+url+" .header2").css('left',($(window).width())+"px").animate({"left": "0px"}, 1000,"linear");
+		$("#"+url+" .wrapper").css('left',($(window).width())+"px").animate({"left": "0px"}, 1000,"linear" ,function(){ callback(); });
+		//$("#"+url+" > div").css('left',($(window).width())+"px").animate({"left": "0px"}, 1000,"linear" ,function(){  console.log('end');  callback();});
+		if(useIscroll) loaded($("#"+url+" .wrapper").get(0));
+	}
+	function loadCss(url) {
+		if (document.createStyleSheet) document.createStyleSheet(url);
+		else $("head").append($("<link rel='stylesheet' href='"+url+"' type='text/css' media='screen' />"));
+	}
+	function loadingJS(source) { var xjs=document.createElement('script'); xjs.src=source; xjs.type="text/javascript"; document.getElementsByTagName('head')[0].appendChild(xjs); }
+	//loadingJS("js/distance.js"); /* load after all loading */
+	function ScrollTo(id,callback) { if($(id).length>0) { $('.visible .wrapper').animate({ scrollTop: $(id).offset().top-100 }, 2000,function(){ callback(); }); } }
+	function showMeInstant(id) { $(id).css('background-color','#CEE3F6').delay(1000).animate({'opacity':0.4},500,function() {$(this).css('background-color','#FFF').css('opacity',1); }); }
+	
+	var myScroll; var myScarr=[]; 
+	function loaded(obj) {
+		if(jQuery.inArray(obj, myScarr)<0) { myScroll=new iScroll(obj); myScarr.push(obj); }
+	}
+
+	</script>
+	<script src="cordova.js"></script>
+		<!-- <script src="PushNotification.js"></script>  -->
+		
+   <!--  <script src="js/jquery.mobile-1.3.1.min.js"></script>  -->
+
+<!--	<script src="http://lab.cubiq.org/iscroll/src/iscroll.js"></script> -->
+	<script src="js/config.js"></script>
+	<script src="js/distance.js"></script>
+	<script src="js/main.js"></script>
+   <!-- <script src="js/iscroll.js"></script> -->
+    </head>
+
+    <body>
+        
+	<div id="header" class="header">
+		<h1><img src="img/icon32.png" alt="logo" style="vertical-align:middle;margin-right:10px;"/>EMSC Quakes</h1>
+	</div>
+	
+	<div id="home" class="visible">
+		<div class="header2">
+			<h2>Latest earthquakes</h2>
+			<!-- <a href="camera" class="change-pic-btn slide" > Cam </a> -->
+		</div>
+		
+		<div class="wrapper" id="wrapper0">
+			<ul id="quakesList" class="icon-list"></ul>
+		</div>
+	</div>
+	
+	<div id="camera" class="hidden">
+		<div class="header2"><h2>Camera</h2></div>
+		<div class="wrapper">
+			<p style="text-align:center;">
+			<a href="javascript:Picture(1)" class="bt_a">Picture</a>
+			<a href="javascript:captureVideo()" class="bt_a">Camera</a>
+			<a href="javascript:Picture(2)" class="bt_a">From Photos</a>
+			<a href="javascript:Picture(0)" class="bt_a">From Gallery</a>
+			<a href="javascript:notify()" class="bt_a">Notify</a>
+			<a href="javascript:testAudio()" class="bt_a">Test audio</a>
+			</p>
+			<div id="status" class="noslide hide"></div>
+		</div>
+	</div>
+	
+	
+	<div id="Emap" class="hidden">
+		<div class="header2"><h2>Map</h2></div>
+		<div class="wrapper">
+			<div id="map" style="position:relative; height:100%;"></div>
+		</div>
+	</div>
+	
+	<div id="fullcam" class="hidden"><div id="allcams"></div></div>
+	<a href="Feltit" id="FeltitLnk" class="hidden slide"></a>
+	<div id="Feltit" class="hidden">
+		<div class="header2"><h2>Share your Experience</h2></div>
+		<div class="wrapper">
+			<p class="thumb" style="text-align:center;padding-top:10px;font-weight:bold;">Please choose how you felt the earthquake</p>
+			<p id="thumb" class="thumb"></p>
+			
+			<p id="comment" class="hidden">
+				<label for="ques_email">Email (optional)</label>
+				<input type="email" id="ques_email">
+				<label for="ques_comments">Do you have any other comments about the effects of the earthquake that might be useful?</label>
+				<textarea id="ques_comments" cols="60" rows="5" style="width:90%;"></textarea><br/>
+				<input type="button" value="Finish" onclick="questio_end()"/>
+			</p>
+			
+		</div>
+	</div>
+	
+	<div id="Esetting" class="hidden">
+		<div class="header2"><h2>Settings</h2></div>
+		<div class="wrapper">
+			<!-- <div id="header"><h1>EmscQuake Alert</h1></div> -->
+		
+			<div id="options">
+					<div id="donate" style="text-align:center;margin-bottom:10px;"><a href="http://www.emsc-csem.org/Donate/"><img src="css/img/btn_donate_SM.gif" title="donate" alt="donate" /></a></div>
+				<fieldset> 
+					<legend>Earthquakes Settings</legend>
+					<p><span class="setting" for="min_mag">Magnitude min:&nbsp;<input class="fl" id="min_mag" type="number" min="1" max="10" value="1" style="width:40px;" ></span></p><br>
+					<p><input type="checkbox" id="enabledist"><span class="setting" for="enabledist">&nbsp; Use Max Distance</span></p>
+					<fieldset class="setting1 maxdistc">	
+						<p><span class="setting" for="MaxDist">Max Distance from my location:&nbsp;</span><select id="MaxDist" style="width:60px;" ></select><span class="setting"> Km</span></p>
+					</fieldset>	
+					<p><input type="checkbox" id="enablefelt" checked ><span class="setting" for="enablefelt">&nbsp; Show Potentialy Felt & damaging earthquakes</span></p>
+				</fieldset>
+				
+				<fieldset>
+					<legend>TimeZone</legend>
+					<input type="radio" id="radio0" name="timeZoneOffset" value="0" checked ><span class="setting">&nbsp; UTC</span><br>
+					<input type="radio" id="radio1" name="timeZoneOffset" value="-1" ><span class="setting">&nbsp; Epicenter Time</span><br>
+					<input type="radio" id="radio2" name="timeZoneOffset" value="" class="timezlocal" ><span class="setting" id="localT">&nbsp; Local System Time</span>
+				</fieldset>
+				
+				<fieldset style="">
+					<legend>Notifications Settings</legend>
+						<fieldset>
+						<legend>Audio Alert</legend>
+							<input type="checkbox" id="AudioAlert" checked ><span class="setting" for="AudioAlert">&nbsp; Enable</span><br>
+							<fieldset class="setting1">
+								<span class="setting audioalert" for="AudioAlertMag">Magnitude min:&nbsp;</span><input class="fl" id="AudioAlertMag" type="number" min="1" max="10" value="1" style="width:40px;" >
+							</fieldset>	
+						<a class="bt-blue fx-stripes test" id="playaudio" href="#playaudio"><span>Sample Test</span></a>
+						</fieldset>
+						<fieldset>
+						<legend>Shake Alert</legend>
+						<input type="checkbox" id="ShakeAlert" checked ><span class="setting" for="ShakeAlert">&nbsp; Enable</span><br>
+						<fieldset class="setting1">
+							<span class="setting shakealert" for="shakeAlertMag">Magnitude min:&nbsp;</span><input class="fl" id="shakeAlertMag" type="number" min="1" max="10" value="1" style="width:40px;" >
+						</fieldset>
+						<span class="setting2" for="ShakeMagTest">Test Shake mag:&nbsp; </span><input class="fl2" id="ShakeMagTest" type="number" min="1" max="10" value="5" style="width:40px;" > &nbsp;&nbsp; <a class="bt-blue fx-stripes test" id="shaketest" href="#shaketest" ><span>Test</span></a>
+						</fieldset>
+						
+						<fieldset>
+						<legend>The Night</legend>
+							<input type="checkbox" id="enablenight" ><span class="setting" for="enablenight">&nbsp; Disable Audio & Shake</span><br>
+							<fieldset class="setting1 night">
+								<p><span class="setting" for="nightmin_h">between &nbsp;</span><select id="nightmin_h" class="hours" style="width:45px;"></select>
+								<span class="setting" for="nightmin_m">&nbsp;:&nbsp;</span><select id="nightmin_m" class="minutes" style="width:45px;"></select>
+								<span class="setting" for="nightmax_h">&nbsp;and&nbsp;</span><select id="nightmax_h" class="hours" style="width:45px;"></select>
+								<span class="setting" for="nightmax_m">&nbsp;:&nbsp;</span><select id="nightmax_m" class="minutes" style="width:45px;"></select></p>
+								<p><input type="checkbox" id="ANightDist" checked ><span for="ANightDist" class="setting">&nbsp;except epicentral distance &le;</span>
+									<select id="nightDist"></select><span for="nightDist" class="setting"> km </span></p>
+								<p><input type="checkbox" id="ANightFelt" checked ><span for="ANightFelt" class="setting">&nbsp;except Potentialy Felt & damaging earthquakes</span></p>
+							</fieldset>	
+						</fieldset>
+						
+						<!-- <fieldset>
+						<legend>Screen Alert</legend>
+						<label><input type="checkbox" id="screenAlert" checked >Enable Screen Alert.<br></label><br />
+						<label class="setting">Position:</label><div  class="fl"><select id="screenPos">
+							<option value="TL">Top Left</option><option value="TR">Top Right</option><option value="BL">Bottom Left</option><option value="BR">Bottom Right</option><option value="TC">Center Top</option><option value="BC">Center Bottom</option><option value="LC">Center Left</option><option value="RC">Center Right</option>								
+						</select></div>
+						</fieldset> -->
+				</fieldset>
+				
+			
+				
+				<fieldset id="field_settings" style="display:none;" >
+					<legend>Refresh Settings</legend>
+					<label class="setting">Reload every:&nbsp;</label><input class="fl" id="timer" type="number" min="1" max="20" value="5" style="width:40px;" >&nbsp;&nbsp; <span style="vertical-align:middle;"> minutes</span>	
+				</fieldset>
+	
+				<div id="tip"></div>
+				
+			</div>
+			<!-- <div id="action_panel">
+				<a class="bt-blue fx-stripes" name="savebt" id="savebt" href="#savebt"><span>Save</span></a>
+			</div> -->
+			
+			<p style="height:10px;"></p>
+		</div>
+	</div>
+
+	
+	
+
+	<div id="busy">Loading...</div>
+	<div id="app-status-div" style="display:none;"><ul id="app-status-ul"></ul></div> 
+	
+
+	<div id="footer" class="footer">
+		<a href="Emap" class="footicon slide"><div><div class="mapicon"></div></div></a> 
+		<a href="home" class="footicon slide"><div class="footiconsel"><div class="listicon gray"></div></div></a> 
+		<a href="Esetting" class="footicon slide"><div><div class="settingsicon"></div></div></a>
+	</div>
+	
+    </body>
+
+</html>
