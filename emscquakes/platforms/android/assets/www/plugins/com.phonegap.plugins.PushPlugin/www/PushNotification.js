@@ -54,6 +54,22 @@ PushNotification.prototype.setApplicationIconBadgeNumber = function(successCallb
     cordova.exec(successCallback, errorCallback, "PushPlugin", "setApplicationIconBadgeNumber", [{badge: badge}]);
 };
 
+// Call this to save settings
+PushNotification.prototype.NotificationSettings = function(successCallback, errorCallback, options) {
+    if (errorCallback == null) { errorCallback = function() {}}
+
+    if (typeof errorCallback != "function")  {
+        console.log("PushNotification.NotificationSettings failure: failure parameter not a function");
+        return
+    }
+
+    if (typeof successCallback != "function") {
+        console.log("PushNotification.NotificationSettings failure: success callback parameter must be a function");
+        return
+    }
+
+	cordova.exec(successCallback, errorCallback, "PushPlugin", "NotificationSettings", [options]);
+};
 //-------------------------------------------------------------------
 
 if(!window.plugins) {
