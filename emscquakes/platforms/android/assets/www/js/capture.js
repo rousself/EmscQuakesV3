@@ -13,6 +13,7 @@ function captureError(error) {
 }
 
 function uploadToServer(mediaFilePath,name) {
+		 $('.mymessage').html('Please wait!'); $('.messages').fadeIn(1000);
 		var ext=name.split('.').pop();
 		var options = new FileUploadOptions();
 		options.fileName=name; options.fileKey='Filedata';
@@ -26,15 +27,15 @@ function uploadToServer(mediaFilePath,name) {
 			 case "mp4": 
 			  options.mimeType="video/mp4";
 			  break; 
-		}
+		} console.log('Extension '+ext+' ** '+name);
 		options.params=jQuery.extend(EmscConfig.video.params, EmscConfig.video.coords);//EmscConfig.video.params;
 		$('#status').removeClass('hide');
-		var statusDom=$('#status').get(0); statusDom.innerHTML = "Loading..."
+		var statusDom=$('.mymessage').get(0); statusDom.innerHTML += '<br>Loading...<br><p id="loader"></p>'
 		var ft = new FileTransfer();
 		ft.onprogress = function(progressEvent) {
 			if (progressEvent.lengthComputable) {
 				var perc = Math.floor(progressEvent.loaded / progressEvent.total * 100);
-				statusDom.innerHTML = perc + "% loaded...";
+				$('#loader').html( perc + "% loaded..." );
 			} else {
 				if(statusDom.innerHTML == "") statusDom.innerHTML = "Loading";
 				else statusDom.innerHTML += ".";
@@ -46,24 +47,33 @@ function winTrans(r) {
 	console.log("Code = " + r.responseCode);
 	console.log("Response = " + r.response);
 	console.log("Sent = " + r.bytesSent);
-	$('#status').addClass('hide');
+	$('#status').addClass('hide'); 
+	//$('#fullcam').addClass('hidden');
+	$('.mymessage').html('The file was uploaded successfully');
+	$('.messages').click(function(e) {$(this).fadeOut(1000); });
+
 }
 function failTrans(error) {
 	console.log("An error has occurred: Code = " + error.code);
 	console.log("upload error source " + error.source);
 	console.log("upload error target " + error.target);
 	$('#status').addClass('hide');
+	//$('#fullcam').addClass('hidden');
+	$('.mymessage').html('Error during uploading the file. Please try later!');
+	$('.messages').click(function(e) {$(this).fadeOut(1000); }); 
 }
 
 
 function setCoordsVideo(position) { EmscConfig.video.coords=position; }
 // A button will call this function
 function captureVideo() {
+	$('#fullcam').fadeOut(1000); $('.mymessage').html('Please wait!'); $('.messages').fadeIn(1000);
 	localise(setCoordsVideo);
 	// Launch device video recording application,  allowing user to capture up to 2 video clips
 	navigator.device.capture.captureVideo(captureSuccess, captureError, {limit: 1});
 }
 function Picture(SourceType) {
+	$('#fullcam').fadeOut(1000);
 	localise(setCoordsVideo);
 	navigator.camera.getPicture(
             function(imageData) {  console.log('ok picture');
@@ -75,11 +85,12 @@ function Picture(SourceType) {
             function() { 
 				console.log('Error taking picture');   
 			},
-            { quality: 50, targetWidth:600, encodingType: 0 /* 0=JPG 1=PNG*/, mediaType:2 /*all media allow*/,destinationType:1,saveToPhotoAlbum:true, sourceType: SourceType }	
+            { quality: 50, targetWidth:600, encodingType:1 mediaType:2,destinationType:1,saveToPhotoAlbum:true, sourceType: SourceType }	
      
 	 );
 			   // destinationType: Camera.DestinationType.DATA_URL, //0=DATA_URL (base64), 1=FILE_URI, 2=NATIVE_URI
 				//sourceType: 1,      // 0:Photo Library, 1=Camera, 2=Saved Photo Album
+				// mediaType:    PICTURE: 0,  VIDEO: 1,  ALLMEDIA : 2   // 
 				//encodingType: 0 ,    // 0=JPG 1=PNG
 				//saveToPhotoAlbum: true,
 }

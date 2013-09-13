@@ -40,7 +40,9 @@
 			if(checkConnection() || !isAndroid) {
 				pushNotification = window.plugins.pushNotification;
 				app.initapp(); 
-				Push();
+				if(! app.isApiKey()) Push();
+				else app.refresh();
+				if(!isAndroid) app.refresh(); //debug mode
 			}
 		 }
 		
@@ -277,7 +279,7 @@
 	</div>
 
 	
-	
+	<div class="messages hidden"><div class="messagesC"><span class="mymessage">The file was uploaded successfully</span></div></div>
 
 	<div id="busy">Loading...</div>
 	<div id="app-status-div" style="display:none;"><ul id="app-status-ul"></ul></div> 

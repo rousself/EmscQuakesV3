@@ -1,5 +1,5 @@
 var EmscConfig = {
-api: {url: 'http://test-fred.emsc-csem.org:8080/service/api/1.0/get.json', key: 'apikey=addon', addon_key: '5A', app_key:'5A' },
+api: {url: 'http://test-fred.emsc-csem.org:8080/service/api/1.0/get.json',key: 'apikey=' /* key: 'apikey=addon', addon_key: '5A', app_key:'5A' */},
 socket_io: {url: 'http://test-fred.emsc-csem.org:8082/test'},
 settings: {timers:2, min_mag:3,notPos:'RC',screenAlert:true,shakeAlert:true,shakeAlertMag:1,audioAlert:true,audioAlertMag:2,timeZoneOffset:0,enabledist:false,MaxDist:500,
 	enablefelt:true,enablenight:false,nightmin_h:22,nightmin_m:0,nightax_h:7,nightmax_m:0,AnightDist:true,nightDist:200,ANightFelt:true},
@@ -8,8 +8,8 @@ video: {url: 'http://test-fred.emsc-csem.org:8080/Earthquake/Contribute/Pictures
 questio: {url:'http://m.emsc.eu/earthquake/questio_save.php'},
 android: {senderID:'869856509191'},
 register: {
-	push:{url:'http://test-fred.emsc-csem.org:8080/RegisterApp.php'},
-	app:{url:'http://test-fred.emsc-csem.org:8080/addons/register.php'}
+	push:{url:'http://test-fred.emsc-csem.org:8080/RegisterApp.php'}
+	//,app:{url:'http://test-fred.emsc-csem.org:8080/addons/register.php'}
 },	
 debug:true
 };

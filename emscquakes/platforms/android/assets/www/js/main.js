@@ -7,7 +7,8 @@ var app = {
 	_settings: EmscConfig.settings,
 	_JsonUrl: EmscConfig.api.url,
 	_apikey: EmscConfig.api.key,
-	_addon_key: EmscConfig.api.addon_key,
+	_saveApiKeyLabel: 'EMSC_Api_Key',
+	//_addon_key: EmscConfig.api.addon_key,
 	_appdevice: {},
 	_coords:{lat:0,lon:0},
 	Location: function(position) {  
@@ -15,7 +16,7 @@ var app = {
 	},
 	
 	getParams: function() {
-		return 'addon_key='+this._addon_key+'&'+this._apikey+'&min_mag='+'1';//this._settings.min_mag; 
+		return /*'addon_key='+this._addon_key+'&'+*/this._apikey+'&min_mag='+'1';//this._settings.min_mag; 
 		//return {addon_key: this._addon_key, };
 	},
 
@@ -162,13 +163,17 @@ var app = {
 			this.post_request(EmscConfig.register.app.url,this._appdevice,function(req) { self.setExtensionKey(req.addon_key); }); 
 		}	
 	},
+	saveApiKey:function (key) {
+		this._apikey+=key; this._storage.setItem(this._saveApiKeyLabel,this._apikey); this.refresh();
+	},
 	registerMyAppPush: function(key) {  
-		delete this._settings.appPush_key;
+		//delete this._settings.appPush_key;
 		if(typeof(this._settings.appPush_key)=='string') return;
 		else {
 			console.log('send push key to register');
-			this._settings.appPush_key=key; this._storage.setItem(this._saveSettingsLabel,JSON.stringify(this._settings));
-			this.post_request(EmscConfig.register.push.url,{ 'platform': device.platform.toLowerCase() , 'push_key': key });
+			this._settings.appPush_key=key;  var self=this;
+			this._storage.setItem(this._saveSettingsLabel,JSON.stringify(this._settings));
+			this.post_request(EmscConfig.register.push.url,{ 'platform': device.platform.toLowerCase() , 'push_key': key },function(req) { self.saveApiKey(key); });
 		}	
 	},
 	
@@ -308,7 +313,7 @@ var app = {
 	
 	createDateStr: function(str,timeZOffset) {
 		var tz=(this._settings.timeZoneOffset==-1) ? timeZOffset : this._settings.timeZoneOffset;
-		return new Date(str).utc().setTimeZoneOffset(-1*tz).EmscF()+' UTC'+(this._settings.timeZoneOffset==0 ? '' : da.isoTimezone(-1*tz) );
+		return new Date(str).utc().setTimeZoneOffset(tz).EmscF()+' UTC'+(this._settings.timeZoneOffset==0 ? '' : da.isoTimezone(tz) );
 	},
 	insertLine_Plus_Before: function(obj,id) {
 		$('.e_'+id).before(this.createLine(obj));  $('.e_'+id).before(this.createLinePlus(obj));
@@ -396,13 +401,19 @@ var app = {
 	alert: function(txt) {
 		console.log('Alert '+txt);
 	},
+	
+	isApiKey: function() {
+		var key=this._storage.getItem(this._saveApiKeyLabel);
+		if(typeof key=='string') {this._apikey=key; return true;}
+		return false;
+	},
 	initapp: function() {
 		var self=this;
 		localise(function(location) { self.Location(location); });
 		this.getStorage();
 		this.loadStoredSettings(); 
 		this.sendToJava();
-		this.registerExtensionKey();
+		//this.registerExtensionKey();
 		try {
 			//var e=this._storage.getItem('saveAllJson'); console.log('saveAllJson '+typeof e);  console.log('e= '+e); 
 			this._quakes=JSON.parse(this._storage.getItem('saveAllJson'));    //console.log('quakes= '+this._quakes);
@@ -410,7 +421,8 @@ var app = {
 		//this.initDb();		//this.getAll();
 		/*if(! this._quakes ) { console.log('nothing in db'); this.refresh();}
 		else this.createList();*/
-		this.refresh();
+		
+		//this.refresh();
 	}
 	
 };	
@@ -483,7 +495,7 @@ var da={
 		});	
 	}
 };
-
+/*
 function registerMyAppPush(key) {
 	console.log('send push key to register');
 	$.support.cors = true;
@@ -501,7 +513,7 @@ function registerMyAppPush(key) {
 			}
 		});	
 }
-
+*/
  
  function Push() {
 	$("#app-status-ul").append('<li> Platform : '+device.platform+'</li>');
@@ -698,7 +710,7 @@ function deg2rad(deg) {
 	if($('#allcams').children().length > 0) return;
 	$("head").append('<script src="js/capture.js" />'); 
 	var str='<div><span class="iccam0"></span>Take Picture</div> <div><span class="iccam2"></span>Take Video</div> <div><span class="iccam3"></span>From Gallery</div> <div><span class="iccam4"></span>From Photos</div>';
-	if(isAndroid) str='<div><span class="iccam0"></span>Take Picture</div> <div><span class="iccam2"></span>Take Video</div><div class="camandroid"><span class="iccam3"></span>From Gallery/Photos</div>';
+	if(isAndroid) str='<div><span class="iccam0"></span>Take Picture</div> <div><span class="iccam2"></span>Take Video</div><div class="camandroid"><span class="iccam4"></span>From Gallery/Photos</div>';
 	$('#allcams').append(str);
 	$('#fullcam').click(function(e) {$(this).fadeOut(1000); });
 	$('#allcams div').each(function(){ 
