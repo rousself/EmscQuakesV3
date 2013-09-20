@@ -16,9 +16,9 @@
         <link rel="stylesheet" href="css/styles.css" media="all" />
 		
 	<script src="js/jquery-1.8.2.min.js"></script> 
-	<script src="js/iscroll-lite.js"></script>	
+<!--	<script src="js/iscroll-lite.js"></script>	-->
    <script>
-		var console={log:function(txt) { $('.visible .wrapper').prepend('<p>'+txt+'</p>'); /* $('#home').prepend('<p>'+txt+'</p>');*/ }};	
+		var console={log:function(txt) { /* $('.visible .wrapper').prepend('<p>'+txt+'</p>');*/ /* $('#home').prepend('<p>'+txt+'</p>');*/ }};	
 		var isloaded=[]; isloaded['Emap']=isloaded['camera']=isloaded['Esetting']=false;
 		
 		var  isAndroid = (/android/gi).test(navigator.appVersion);			
@@ -33,7 +33,7 @@
 			try {
 				if(device.platform.toLowerCase()=='android' && parseFloat(device.version) < 3) {
 					document.addEventListener('touchmove', function (e) { e.preventDefault(); }, false);
-					loadingJS("js/iscroll-lite.js"); useIscroll=true;
+					loadingJS("js/iscroll-lite.js"); useIscroll=true; console.log('use iscroll');
 				}	
 			} catch(e) {}
 			//try { console.log('device: '+JSON.stringify(device)); console.log(parseFloat(device.version)); } catch(e) {}
@@ -92,6 +92,32 @@
 			$('.gray').removeClass('gray');	$('.footiconsel').removeClass('footiconsel');
 			$(this).children().addClass('footiconsel').children().addClass('gray');
 		});
+		
+		$('.wrapper').scroll(function(){
+			var elem = $(this);  console.log('Bottom '+elem[0].scrollHeight+'  '+elem.scrollTop()+'  '+elem.outerHeight());
+			var pullUpEl = document.getElementById('pullUp');	
+			
+			if (elem[0].scrollHeight - elem.scrollTop() == elem.outerHeight()) {
+				 console.log('Bottom'); navigator.notification.alert('Bottom', internetcallback, "ERROR", "OK"); 
+				
+				 if (pullUpEl.className.match('flip')) {
+					pullUpEl.className = 'loading';
+					pullUpEl.querySelector('.pullUpLabel').innerHTML = 'Loading...';				
+					//pullUpAction();	// Execute custom function (ajax call?)
+				}
+			}
+			
+			
+			/*if (elem.y < (this.maxScrollY - 5) && !pullUpEl.className.match('flip')) {
+				pullUpEl.className = 'flip';
+				pullUpEl.querySelector('.pullUpLabel').innerHTML = 'Release to refresh...';
+				this.maxScrollY = this.maxScrollY;
+			} else if (elem.y > (this.maxScrollY + 5) && pullUpEl.className.match('flip')) {
+				pullUpEl.className = '';
+				pullUpEl.querySelector('.pullUpLabel').innerHTML = 'Pull up to load more...';
+				this.maxScrollY = pullUpOffset;
+			}*/
+		});
  
 	});	
 	
@@ -119,7 +145,7 @@
 	
 	var myScroll; var myScarr=[]; 
 	function loaded(obj) {
-		if(jQuery.inArray(obj, myScarr)<0) { myScroll=new iScroll(obj); myScarr.push(obj); }
+		if(jQuery.inArray(obj, myScarr)<0) { myScroll=new iScroll(obj, {useTransition: true, onScrollEnd: function() { console.log('scroll end'); $('.wrapper').addClass('hidden'); }} ); myScarr.push(obj); }
 	}
 
 	</script>
@@ -149,6 +175,7 @@
 		
 		<div class="wrapper" id="wrapper0">
 			<ul id="quakesList" class="icon-list"></ul>
+			<div id="pullUp"><span class="pullUpIcon"></span><span class="pullUpLabel">Pull up to refresh...</span></div>
 		</div>
 	</div>
 	
@@ -284,7 +311,7 @@
 	<div id="busy">Loading...</div>
 	<div id="app-status-div" style="display:none;"><ul id="app-status-ul"></ul></div> 
 	
-
+	<div id="mymess" class="header2 header22 hidden" style="bottom:50px; top:auto;"></div>
 	<div id="footer" class="footer">
 		<a href="Emap" class="footicon slide"><div><div class="mapicon"></div></div></a> 
 		<a href="home" class="footicon slide"><div class="footiconsel"><div class="listicon gray"></div></div></a> 

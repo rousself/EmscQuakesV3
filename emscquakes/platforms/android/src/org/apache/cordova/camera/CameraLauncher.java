@@ -122,7 +122,7 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
      */
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
         this.callbackContext = callbackContext;
-
+        LOG.d(LOG_TAG, "execute: "+action+"  "+args.toString());
         if (action.equals("takePicture")) {
             int srcType = CAMERA;
             int destType = FILE_URI;
@@ -257,7 +257,7 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
             intent.setType("*/*");
             title = GET_All;
         }
-
+        LOG.d(LOG_TAG, "allowed format: "+intent.getType());
         intent.setAction(Intent.ACTION_GET_CONTENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         if (this.cordova != null) {

@@ -48,9 +48,6 @@
         <param name="android-package" value="com.plugin.gcm.PushPlugin" />
     </feature>
     <access origin="http://127.0.0.1*" />
-	<access origin="http://*.emsc-csem.org" />
-	<access origin="http://*.emsc.eu" />
-	
     <preference name="useBrowserHistory" value="true" />
     <preference name="exit-on-suspend" value="false" />
     <preference name="permissions" value="none" />
